@@ -1,0 +1,31 @@
+# dependencias
+node_modules/
+
+# secretos / entorno (NUNCA subir el PAT ni llaves)
+.env
+.env.*
+!.env.example
+.mcp.local.json
+# llaves de Service Account / credenciales que por error queden en el repo
+*credentials*.json
+*service-account*.json
+*-sa.json
+*.pem
+*.key
+*.p12
+
+# casos generados (salida del usuario; pueden contener datos reales del negocio)
+Casos de Prueba/**/*.xlsx
+Casos de Prueba/**/*.csv
+Casos de Prueba/*.xlsx
+Casos de Prueba/*.csv
+
+# temporales
+*.log
+*.tmp
+*.tmp.json
+tmp/
+
+# sistema
+.DS_Store
+Thumbs.db

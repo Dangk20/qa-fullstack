@@ -1,0 +1,18 @@
+{
+  "name": "analista-qa-pro-max",
+  "version": "1.0.0",
+  "description": "Agente de IA (Claude Code) para diseñar casos de prueba de valor desde HU/Features de Azure DevOps y entregarlos en Excel (.xlsx).",
+  "license": "MIT",
+  "private": true,
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "casos:xlsx": "node scripts/casos-prueba/json-a-xlsx.js",
+    "push:sheets": "node scripts/casos-prueba/push-sheets.js"
+  },
+  "dependencies": {
+    "exceljs": "^4.4.0",
+    "googleapis": "^171.4.0"
+  }
+}

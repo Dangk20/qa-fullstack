@@ -1,0 +1,22 @@
+{
+  "mcpServers": {
+    "azure-devops": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@azure-devops/mcp",
+        "Linktic",
+        "-d",
+        "core",
+        "work-items",
+        "work",
+        "search",
+        "--authentication",
+        "envvar"
+      ],
+      "env": {
+        "ADO_MCP_AUTH_TOKEN": "${ADO_MCP_AUTH_TOKEN}"
+      }
+    }
+  }
+}

@@ -1,0 +1,5 @@
+# Esta carpeta aloja los casos de prueba generados: UN archivo por módulo,
+# con todas sus funcionalidades dentro:
+#   Casos de Prueba/<Módulo>.xlsx   (ej. Clientes.xlsx, Tesoreria.xlsx)
+# Los .xlsx generados están ignorados por git (.gitignore); este archivo solo
+# preserva la carpeta en el repositorio.
