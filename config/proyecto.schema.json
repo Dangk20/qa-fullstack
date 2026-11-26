@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qa-fullstack/config/proyecto.schema.json",
+  "title": "Configuración de proyecto de qa-fullstack",
+  "description": "Config agnóstica por proyecto. Copiá proyecto.example.json a proyecto.json y ajustá. No pongas secretos aquí: van en .env.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["proyecto"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "proyecto": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nombre"],
+      "properties": {
+        "nombre": { "type": "string", "minLength": 1 },
+        "descripcion": { "type": "string" }
+      }
+    },
+    "apps": {
+      "type": "object",
+      "description": "Apps objetivo por pilar. La baseUrl la sobreescribe la variable de entorno del pilar (E2E_BASE_URL, API_BASE_URL, PERF_BASE_URL).",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "baseUrl": { "type": "string", "format": "uri" },
+          "descripcion": { "type": "string" }
+        },
+        "required": ["baseUrl"]
+      }
+    },
+    "gestorDeHUs": {
+      "type": "object",
+      "description": "De dónde se leen las HU/Features. Credenciales en .env, nunca aquí.",
+      "additionalProperties": true,
+      "properties": {
+        "tipo": {
+          "type": "string",
+          "enum": ["azure-devops", "jira", "github-issues"],
+          "description": "azure-devops hoy; jira / github-issues son puntos de extensión."
+        },
+        "organizacion": { "type": "string" },
+        "proyecto": { "type": "string" },
+        "modo": {
+          "type": "string",
+          "enum": ["read", "read-write"],
+          "default": "read",
+          "description": "read (default) o read-write (crear bugs/pre-bugs, opt-in, con OK)."
+        }
+      },
+      "required": ["tipo"]
+    },
+    "pilares": {
+      "type": "object",
+      "description": "Qué pilares usa el proyecto.",
+      "additionalProperties": { "type": "boolean" },
+      "properties": {
+        "e2e": { "type": "boolean" },
+        "smoke": { "type": "boolean" },
+        "api": { "type": "boolean" },
+        "performance": { "type": "boolean" },
+        "security": { "type": "boolean" },
+        "accessibility": { "type": "boolean" }
+      }
+    }
+  }
+}
