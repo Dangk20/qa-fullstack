@@ -251,7 +251,7 @@ redactado, **aumenta la cobertura de tres módulos a la vez**.
 
 ## El banco de escenarios (pool reutilizable)
 
-El Google Sheets completo **es un banco de escenarios**: no una lista de una sola
+El repositorio completo de casos **es un banco de escenarios**: no una lista de una sola
 vez, sino un pool del que QA selecciona subconjuntos según para qué los necesite.
 El mismo caso sirve para varios fines a la vez; por eso cada caso lleva una
 columna **Propósito** con una o más etiquetas de un vocabulario fijo:

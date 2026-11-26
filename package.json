@@ -8,11 +8,9 @@
     "node": ">=18"
   },
   "scripts": {
-    "casos:xlsx": "node scripts/casos-prueba/json-a-xlsx.js",
-    "push:sheets": "node scripts/casos-prueba/push-sheets.js"
+    "casos:xlsx": "node scripts/casos-prueba/json-a-xlsx.js"
   },
   "dependencies": {
-    "exceljs": "^4.4.0",
-    "googleapis": "^171.4.0"
+    "exceljs": "^4.4.0"
   }
 }

@@ -116,7 +116,7 @@ Casos de prueba ID | Nombre del escenario | Paso a paso | Resultado esperado | H
   guardarlo en un `.json` temporal y convertirlo con:
 
   ```
-  node scripts/casos-prueba/json-a-xlsx.js <temp.json> "Casos de Prueba/<Módulo>.xlsx"
+  node scripts/casos-prueba/json-a-xlsx.js <temp.json> "Casos de Prueba/<Módulo>/<Módulo>-Casos-Consolidado.xlsx"
   ```
 
   El script (usa `exceljs`; correr `npm install` una vez) escribe el bloque, congela
@@ -124,11 +124,12 @@ Casos de prueba ID | Nombre del escenario | Paso a paso | Resultado esperado | H
   módulo **ya existe, AÑADE** los casos nuevos de-duplicando por `Casos de prueba ID`
   (no sobreescribe; usar `--overwrite` solo para regenerar desde cero). Borrar el
   `.json` temporal al terminar.
-- **Ruta de salida (default): un `.xlsx` por MÓDULO** → `Casos de Prueba/<Módulo>.xlsx`
-  en la raíz del proyecto (ej. `Casos de Prueba/Clientes.xlsx`). **Todas las
-  funcionalidades del módulo van en ese mismo archivo**, una tras otra (no un archivo
-  por funcionalidad), porque el entregable se copia/pega completo en la pestaña del
-  módulo del Sheet global. Si un lote/feature abarca varias funcionalidades del mismo
+- **Ruta de salida (default): un `.xlsx` CONSOLIDADO por MÓDULO** →
+  `Casos de Prueba/<Módulo>/<Módulo>-Casos-Consolidado.xlsx` (ej.
+  `Casos de Prueba/Clientes/Clientes-Casos-Consolidado.xlsx`), como en rdt_qa_e2e. **Todas
+  las funcionalidades del módulo van en ese mismo archivo**, una tras otra (no un archivo por
+  funcionalidad); la columna **Funcionalidad** distingue cada una y luego mapea a una Suite en
+  Cubofish. Si un lote/feature abarca varias funcionalidades del mismo
   módulo, escribirlas todas en el mismo `<Módulo>.xlsx` (una llamada al script por
   funcionalidad, o un JSON que las incluya). Si toca **varios módulos**, un archivo
   por módulo. Nombre del archivo sin tildes ni `/` (espacios → guiones); el contenido
@@ -144,5 +145,5 @@ Casos de prueba ID | Nombre del escenario | Paso a paso | Resultado esperado | H
 3. **No hacer push** — a lo sumo `git add` + `git commit` si el usuario lo pide; el
    `git push` siempre lo hace el usuario.
 
-> El `.xlsx` se importa luego a la herramienta de Test Plans (p. ej. Cubofish) por
-> separado. Este comando solo **diseña** los casos.
+> El `.xlsx` se publica luego a Cubofish con **`/push-cubofish`** (crea Plan → Suite →
+> Casos; dry-run → aplicar con OK). Este comando solo **diseña** los casos.

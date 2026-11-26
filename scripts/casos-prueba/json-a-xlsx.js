@@ -6,10 +6,9 @@
  * Columnas: Casos de prueba ID | Nombre del escenario | Paso a paso |
  *           Resultado esperado | HU relacionada | Funcionalidad | Propósito
  *
- * Un archivo por módulo: el destino es `Casos de Prueba/<Módulo>.xlsx`. Todas las
- * funcionalidades del módulo se concentran en ese único archivo (la columna
- * Funcionalidad indica a cuál pertenece cada caso). Pensado para copiar/pegar el
- * módulo completo en su pestaña del Sheet global del core.
+ * Un .xlsx consolidado por módulo (ej. `Casos de Prueba/<Módulo>/<Módulo>-Casos-Consolidado.xlsx`).
+ * Todas las funcionalidades del módulo se concentran en ese único archivo (la columna
+ * Funcionalidad indica a cuál pertenece cada caso, y luego mapea a una Suite en Cubofish).
  *
  * Por defecto AÑADE: si el .xlsx ya existe, agrega los casos nuevos al final
  * (de-duplicando por "Casos de prueba ID"), en vez de sobreescribir.

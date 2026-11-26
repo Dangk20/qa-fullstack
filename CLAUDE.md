@@ -114,8 +114,9 @@ mínimo que pasa de verdad** contra la demo pública:
 
 - **Azure DevOps** (`integraciones/azure-devops/`): leer HU/Features, crear bugs/pre-bugs,
   configurar el PAT (read, y write opt-in). MCP en `.mcp.json`, org por variable.
-- **Google Sheets** (`integraciones/google-sheets/`): push opcional de casos al Sheet
-  central (lo heredado de qa-pro-max).
+- **Cubofish** (`integraciones/cubofish/`): push de los casos (`.xlsx`) al gestor de Test
+  Plans vía su API de ingesta, creando la jerarquía Plan → Suite → Casos. Credenciales y
+  endpoint por `.env`. Es el destino de los casos generados (como en rdt_qa_e2e).
 - **Jira / GitHub Issues**: puntos de extensión documentados, sin implementar a medias.
 
 ## Flujos heredados (diseño de casos)
@@ -124,8 +125,8 @@ mínimo que pasa de verdad** contra la demo pública:
    por módulo** en `Casos de Prueba/<Módulo>.xlsx` (7 columnas, incluye Funcionalidad).
    El conocimiento vive en `docs/GUIA-CASOS-DE-PRUEBA-AUTOMATION.md` + skill
    `casos-de-prueba`; el procedimiento en `.claude/commands/generar-casos.md`.
-2. **Publicar (opcional):** `/push-sheets` — sube los casos validados al Sheets central
-   (dry-run → append + de-dup por ID).
+2. **Publicar:** `/push-cubofish` — sube los casos validados (el `.xlsx`) a Cubofish por su
+   API de ingesta, creando la jerarquía Plan → Suite → Casos (dry-run → aplicar; de-dup por ID).
 
 Reglas de diseño vigentes: expandir Features a sus HU; leer solo HU `3. Entregado` /
 `4. Cerrado` (versión superior); agrupar validaciones / separar comportamientos; datos
@@ -139,22 +140,21 @@ con `node scripts/casos-prueba/json-a-xlsx.js <in.json> "Casos de Prueba/<Módul
 .claude/
   agents/     # estratega, diseñador-casos, builder, fixer, reportero, spec-writer, auditor, playwright-test-*
   skills/     # casos-de-prueba, triage, generar-prebug, evidencia, auditar-integrar, orquestar-equipo, openspec-*
-  commands/   # generar-casos, push-sheets (opcional), y comandos por pilar
+  commands/   # generar-casos, push-cubofish, y comandos por pilar
 pilares/      # e2e, smoke, api, performance (k6), security, accessibility
-integraciones/ # azure-devops, google-sheets, jira, github-issues
+integraciones/ # azure-devops, cubofish, jira, github-issues
 config/       # proyecto.example.json (config agnóstica por proyecto)
 docs/         # AUDITORIA.md, guias/ (metodología), taller/ (ejercicios)
-scripts/      # casos-prueba/ (json-a-xlsx, push-sheets opcional), orca/ (tablero), seguridad/ (barrido)
+scripts/      # casos-prueba/ (json-a-xlsx, push-cubofish), orca/ (tablero), seguridad/ (barrido)
 Casos de Prueba/<Módulo>.xlsx   # salida de /generar-casos (ignorado por git)
 ```
 
 ## Antes de commitear (barrido de secretos)
 
-Correr y revisar que esté limpio en lo comiteado:
+Correr el barrido portable (usa `grep`, no requiere `ripgrep`) y revisar que salga limpio:
 
 ```bash
-rg -n -i 'password|passwd|secret|token|[A-Za-z0-9_]*pat[A-Za-z0-9_]*\s*[:=]|service-account|BEGIN (RSA|EC|OPENSSH) PRIVATE KEY' -g '!*.lock' .
-rg -n -E '\b[0-9]{8,11}\b' test-data/ fake/ 2>/dev/null   # posibles cédulas/NITs reales
+bash scripts/seguridad/escanear-secretos.sh     # claves, tokens y asignaciones secreto=valor
 ```
 
 Si aparece un valor real (no un placeholder), **no** se comitea: se mueve a `.env` o se
@@ -163,7 +163,7 @@ en `.gitignore`.
 
 ## Configuración requerida
 
-- **Node 18+** y `npm install` (instala `exceljs`, y `googleapis` para el push opcional).
+- **Node 18+** y `npm install` (instala `exceljs` para el generador de `.xlsx`).
 - Azure DevOps MCP autenticado con **PAT** en `ADO_MCP_AUTH_TOKEN`; org en `AZURE_DEVOPS_ORG`.
   Ver `docs/AZURE-PAT-SETUP.md`.
 

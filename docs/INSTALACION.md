@@ -9,7 +9,7 @@ Hay **dos capacidades** y cada una necesita su credencial:
 | Capacidad | Comando | Credencial que necesitás |
 |---|---|---|
 | **Generar** casos desde HU/Features de Azure | `/generar-casos` | Un **PAT** de Azure DevOps (Work Items: Read) |
-| **Publicar** los casos al Google Sheets central | `/push-sheets` | La **llave del Service Account** de Google (te la da el admin) |
+| **Publicar** los casos a Cubofish | `/push-cubofish` | Acceso a tu repo de Cubofish (su script de importación + credenciales) |
 
 > Podés usar solo *Generar* sin configurar el push. El push es opcional.
 
@@ -21,8 +21,8 @@ Hay **dos capacidades** y cada una necesita su credencial:
 - **Git** → `git --version`
 - **Claude Code** instalado → https://claude.com/claude-code
 - **Cuenta de Azure DevOps** con acceso al proyecto cuyas HU vas a leer.
-- (Solo para publicar) que el **administrador** te entregue la llave del Service
-  Account de Google.
+- (Solo para publicar) acceso a tu **repo de Cubofish** (su script de importación y sus
+  credenciales en el `.env.local` de ese repo).
 
 ---
 
@@ -35,7 +35,7 @@ npm install
 ```
 
 `npm install` instala las dependencias (`@azure-devops/mcp` se baja solo al usar el
-MCP; `exceljs` y `googleapis` quedan instalados para generar el `.xlsx` y publicar).
+MCP; `exceljs` queda instalado para generar el `.xlsx`).
 
 ---
 
@@ -50,8 +50,9 @@ autentica con un **Personal Access Token (PAT)** tuyo.
    (para Linktic: `https://dev.azure.com/Linktic/_usersSettings/tokens`).
 2. **+ New Token**.
 3. **Name:** `qa-fullstack`. **Expiration:** la que prefieras (ej. 90 días).
-4. **Scopes:** *Custom defined* → en **Work Items** marcá **Read**.
-   (Es el único permiso necesario. No habilites scopes de escritura.)
+4. **Scopes:** *Custom defined* → en **Work Items** marcá **Read**
+   (o **Read & Write** si vas a crear bugs/pre-bugs con el rol reportero; la escritura es
+   siempre con OK explícito). No habilites otros scopes.
 5. **Create** y **copiá el token** (Azure no lo vuelve a mostrar).
 
 > Detalle ampliado: [`docs/AZURE-PAT-SETUP.md`](AZURE-PAT-SETUP.md).
@@ -87,47 +88,25 @@ Si falla: PAT vencido/sin scope, o no exportaste la variable en esa terminal.
 
 ---
 
-## 3. Configurar el push al Google Sheets central (Google API) — para `/push-sheets`
+## 3. Configurar el push a Cubofish — para `/push-cubofish`
 
-El push escribe en el documento central de la operación con la **API de Google
-Sheets** usando un **Service Account (SA)**. No usás tu cuenta de Google: usás una
-**llave de servicio** que entrega el administrador.
+El push de casos lo ejecuta un **script de importación que vive en tu repo de Cubofish** (no en
+qa-fullstack). Ese script escribe en la base de Cubofish con sus propias credenciales; qa-fullstack
+solo lo invoca.
 
-### 3.1 Conseguir e instalar la llave (cada QA)
-
-1. **Pedí la llave JSON del Service Account** al administrador (por canal seguro: gestor
-   de secretos / mensaje privado — nunca por el repo ni chat público).
-2. Guardala en la ruta por defecto:
-
-   ```bash
-   mkdir -p ~/.config/google-sheets-sa
-   cp /ruta/a/la-llave.json ~/.config/google-sheets-sa/credentials.json
-   chmod 600 ~/.config/google-sheets-sa/credentials.json
-   ```
-
-   > Alternativa: dejala donde quieras y exportá
-   > `GOOGLE_APPLICATION_CREDENTIALS=/ruta/absoluta/al/json` (en `.env` hay un ejemplo).
-
-3. Verificá con un dry-run (no escribe nada):
+1. Tené clonado tu **repo de Cubofish** con su script de importación de casos y su `.env.local`
+   configurado (`NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SECRET_KEY` — la service-role key la entrega
+   el admin por canal seguro; **nunca** se copia a qa-fullstack).
+2. En el `.env` de qa-fullstack apuntá al script:
 
    ```bash
-   node scripts/casos-prueba/push-sheets.js
+   CUBOFISH_IMPORT_SCRIPT=/ruta/absoluta/a/tu-repo-cubofish/scripts/import-casos/push.js
+   # opcionales: CUBOFISH_PROJECT=<proyecto>  ·  CUBOFISH_AUTHOR_EMAIL=<tu-email>
    ```
+3. Verificá con un dry-run (no escribe nada): ver el ejemplo en
+   [`docs/CUBOFISH-SETUP.md`](CUBOFISH-SETUP.md).
 
-   Debe imprimir el nombre del spreadsheet y el plan por módulo.
-
-> Detalle ampliado (y sección para el administrador): [`docs/PUSH-SHEETS-SETUP.md`](PUSH-SHEETS-SETUP.md).
-
-### 3.2 Solo para el ADMINISTRADOR (configurar Google una vez)
-
-1. **GCP Console** → creá (o reusá) un proyecto.
-2. **APIs & Services → Enable APIs** → habilitá **Google Sheets API**.
-3. **IAM & Admin → Service Accounts** → creá el SA (ej. `qa-e2e-sheets-sync`).
-4. **Keys → Add key → JSON**: descargá la llave. Es la que repartís a cada QA (canal seguro).
-5. Abrí el **Google Sheets central**, botón **Compartir**, y agregá el **email del SA**
-   (`...@....iam.gserviceaccount.com`) como **Editor**. Sin esto, el push da 403.
-6. Pasá a cada QA: la **llave JSON** y, si usan otro documento, el **ID del Sheet**
-   (se setea con `CASOS_SHEETS_ID`).
+> Detalle ampliado: [`docs/CUBOFISH-SETUP.md`](CUBOFISH-SETUP.md).
 
 ---
 
@@ -141,15 +120,16 @@ Dentro de `qa-fullstack`, con Claude Code abierto:
 /generar-casos <ID> [<ID> …]
 ```
 - IDs de **HU**, **Features** o un **lote** (mezcla). Las features se expanden a sus HU.
-- Genera **un `.xlsx` por módulo** en `Casos de Prueba/<Módulo>.xlsx` (7 columnas).
+- Genera **un `.xlsx` consolidado por módulo** en
+  `Casos de Prueba/<Módulo>/<Módulo>-Casos-Consolidado.xlsx` (7 columnas).
 
-### Publicar al Sheets central (cuando estén validados)
+### Publicar a Cubofish (cuando estén validados)
 
 ```
-/push-sheets
+/push-cubofish
 ```
-- Crea una **pestaña por módulo** si no existe; si existe **añade sin sobrescribir**
-  (de-duplica por `Casos de prueba ID`). Corre dry-run primero y, tras revisar, aplica.
+- Crea la jerarquía **Plan (módulo) → Suite (funcionalidad) → Casos**; de-duplica por ID/título.
+  Corre dry-run primero, confirmás el proyecto destino y, tras revisar, aplicás.
 
 ---
 
@@ -167,6 +147,6 @@ Dentro de `qa-fullstack`, con Claude Code abierto:
 |---|---|
 | `azure-devops` no conecta / 401 | PAT vencido, sin scope *Work Items: Read*, o no exportaste `ADO_MCP_AUTH_TOKEN` en esa terminal. |
 | No encuentra la HU | Proyecto equivocado: revisá `AZURE_DEVOPS_PROJECT` o indicáselo al comando; confirmá el ID. |
-| `Service account no encontrado` | Falta la llave en `~/.config/google-sheets-sa/credentials.json` o `GOOGLE_APPLICATION_CREDENTIALS`. |
-| Push da 403 | El documento no está compartido con el email del SA como Editor (avisá al admin). |
+| `CUBOFISH_IMPORT_SCRIPT` no definido / ruta inválida | Falta apuntar al script en `.env`, o el repo de Cubofish no está en esa ruta. |
+| Error de auth con la base de Cubofish | Falta `SUPABASE_SECRET_KEY`/`NEXT_PUBLIC_SUPABASE_URL` en el `.env.local` del repo de Cubofish (no en qa-fullstack). |
 | No encuentra `.xlsx` al publicar | Generá primero los casos (`/generar-casos`). |
