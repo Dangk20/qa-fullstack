@@ -1,0 +1,11 @@
+{
+  "name": "qa-fullstack-pilar-security",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Pilar Seguridad de qa-fullstack: chequeos ejecutables sin herramientas pagas (barrido de secretos, cabeceras, npm audit).",
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "headers": "node tools/revisar-headers.mjs"
+  }
+}

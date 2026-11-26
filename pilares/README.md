@@ -6,15 +6,16 @@ agente ejecuta una estrategia de pruebas pilar por pilar.
 
 | Pilar | Carpeta | Qué prueba | App demo | Estado |
 |---|---|---|---|---|
-| **E2E** | `e2e/` | Flujos de usuario de punta a punta (Playwright). | SauceDemo | ⏳ fase 3 |
-| **Smoke** | `smoke/` | Que lo esencial responde (verificación rápida). | SauceDemo | ⏳ fase 3 |
-| **API** | `api/` | Contrato y estados de endpoints. | reqres.in / httpbin | ⏳ fase 3 |
-| **Rendimiento / estrés** | `performance/` | Carga con k6 (perfiles smoke/load/stress/spike/soak). | QuickPizza / test.k6.io | ⏳ fase 3 |
-| **Seguridad** | `security/` | Lo ejecutable sin pagas (axe, headers, deps, secretos) + guía. | SauceDemo | ⏳ fase 3 |
-| **Accesibilidad** | `accessibility/` | Chequeos a11y automatizables (axe-core). | SauceDemo | ⏳ fase 3 |
+| **E2E** | `e2e/` | Flujos de usuario de punta a punta (Playwright). | SauceDemo | ✅ 2/2 verde |
+| **Smoke** | `smoke/` | Que lo esencial responde (verificación rápida). | SauceDemo | ✅ 2/2 verde |
+| **API** | `api/` | Contrato y estados de endpoints. | JSONPlaceholder | ✅ 4/4 verde |
+| **Rendimiento / estrés** | `performance/` | Carga con k6 (perfiles smoke/load/stress/spike/soak). | test.k6.io | ✅ k6 smoke verde |
+| **Seguridad** | `security/` | Lo ejecutable sin pagas (headers, deps, secretos) + guía. | SauceDemo | ✅ barrido verde |
+| **Accesibilidad** | `accessibility/` | Chequeos a11y automatizables (axe-core). | SauceDemo | ✅ 2/2 verde |
 
-> ⏳ = se construye en la fase 3 (ver `docs/AUDITORIA.md`). El pilar de **seguridad**
-> distingue siempre lo **ejecutable** de lo que es **solo guía**; no promete pentesting real.
+> El pilar de **seguridad** distingue siempre lo **ejecutable** de lo que es **solo guía**;
+> no promete pentesting real. Cada pilar es autocontenido: `cd pilares/<pilar> && npm install && npm test`
+> (performance usa `k6 run`). Todos verificados corriendo de verdad (ver `docs/AUDITORIA.md`).
 
 ## Convención de cada pilar
 
