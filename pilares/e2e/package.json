@@ -1,0 +1,16 @@
+{
+  "name": "qa-fullstack-pilar-e2e",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Pilar E2E de qa-fullstack: ejemplo mínimo de Playwright sobre la app demo pública SauceDemo.",
+  "type": "module",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "report": "playwright show-report",
+    "setup": "playwright install chromium"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.60.0"
+  }
+}
