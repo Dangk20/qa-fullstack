@@ -251,7 +251,7 @@ redactado, **aumenta la cobertura de tres módulos a la vez**.
 
 ## El banco de escenarios (pool reutilizable)
 
-El Google Sheets completo **es un banco de escenarios**: no una lista de una sola
+El repositorio completo de casos **es un banco de escenarios**: no una lista de una sola
 vez, sino un pool del que QA selecciona subconjuntos según para qué los necesite.
 El mismo caso sirve para varios fines a la vez; por eso cada caso lleva una
 columna **Propósito** con una o más etiquetas de un vocabulario fijo:
@@ -467,10 +467,105 @@ vacías y solo llenan `Paso a paso` + `Resultado esperado`, en este orden: preco
 - **Funcionalidad:** nombre legible de la funcionalidad/feature del caso (va
   **después de HU relacionada**, antes de Propósito); permite distinguir las
   funcionalidades dentro del único `.xlsx` del módulo. Solo en la fila cabecera.
-- **Propósito:** las etiquetas que apliquen, separadas por coma. Es lo que permite
+- **Propósito:** las etiquetas que apliquen, separadas por coma (`Cliente, Smoke,
+  Regresión, Automatización, Exploratorio`), **más** la etiqueta de automatizabilidad
+  `Auto-A`/`Auto-B`/`Auto-C`/`Auto-D` (ver "Automatizabilidad A/B/C/D"). Es lo que permite
   filtrar el banco para cada entrega. Solo en la fila cabecera.
 - **Datos:** realistas (nada de `test`, `aaa`, `123`, `01/01/2026`).
 - **Autonomía:** cada caso crea su propio dato; **no** "continuar desde el caso 3".
+
+---
+
+## Cobertura, automatizabilidad y auditoría
+
+> Estas prácticas (cobertura cuantificada, checklist amplia de categorías, automatizabilidad
+> A/B/C/D y revisión de casos existentes) se **inspiran** en el generador-auditor de **SAYG1899**
+> (ver `docs/AUDITORIA-COMPANERO.md`); están **reescritas** para nuestro modelo de 4 tipos + 7
+> columnas, sin copiar su contenido.
+
+### Checklist de categorías de cobertura (la red contra huecos)
+
+Antes de dar por cerrada una funcionalidad, revisá que, **si aplican**, estén cubiertas estas
+categorías. No son tipos de caso nuevos: se materializan en nuestros 4 tipos (feliz / negativo
+robusto / alterno / integración).
+
+| Categoría | Dónde cae en nuestro modelo |
+|---|---|
+| Acceso y **permisos** (con permiso / sin permiso) | Alterno (sin permiso) + feliz (con permiso) |
+| **Cada campo** (formato, longitud, tipo, obligatorio, caracteres especiales) | Checkpoints del negativo robusto |
+| **Reglas de negocio** — ≥1 caso que la cumple (+) y ≥1 que la viola (−) | Feliz/Alterno (+) y checkpoint/Alterno (−) |
+| **Control dual** (quien registra ≠ quien autoriza/aprueba) | Alterno o Integración |
+| **Mensajes** con código + texto literal | Resultado esperado de cada caso |
+| **Notificaciones** — un caso por **destinatario** (correo/alerta a quién) | Integración o Alterno |
+| **Integraciones / batch** con la **regla exacta** (qué se envía, a dónde, cuándo) | Integración |
+| **Auditoría / trazabilidad** — la acción deja su log/registro | Paso de cierre en feliz/alterno/integración |
+| **Errores técnicos** (servicio caído, timeout) cuando son observables en UI | Negativo / Alterno |
+
+### Medir la cobertura antes de entregar
+
+Al terminar de diseñar, **mapeá** cada categoría/criterio de la HU contra los casos que escribiste y
+reportá un cuadro de cobertura:
+
+```
+Cobertura — Crear <Funcionalidad> (HU 12345)
+  Permisos ................. ✅ cubierto
+  Validaciones de campo .... ✅ cubierto (checkpoints 1–6)
+  Reglas de negocio ........ ⚠️ parcial  (falta la regla "monto máximo")
+  Notificaciones ........... ❌ sin cubrir (falta el correo al aprobador)
+  Auditoría ................ ✅ cubierto
+  → Cobertura estimada: 80% · con 2 casos más llega a 100%
+```
+
+Lo **parcial** y lo **sin cubrir** se convierten en casos nuevos o en **preguntas con dueño** (abajo).
+La cobertura es estimada y honesta: no se infla marcando como cubierto lo que no se diseñó.
+
+### Automatizabilidad A/B/C/D (etiqueta en Propósito)
+
+Cada caso lleva, dentro de **Propósito**, una etiqueta `Auto-A`…`Auto-D` que dice qué tan listo está
+para automatizar (no cambia las 7 columnas: es una etiqueta más de Propósito):
+
+- **Auto-A** — automatizable directo por UI, sin preparación especial.
+- **Auto-B** — automatizable, pero necesita **precondición/datos** sembrados primero (por API o flujo).
+- **Auto-C** — solo verificable por **API/servicio**, no por pantalla.
+- **Auto-D** — **hoy no** automatizable; se anota **por qué** y qué lo destrabaría.
+
+Alimenta la planeación del builder/spec-writer: por dónde empezar y qué esperar.
+
+### Preguntas abiertas con dueño
+
+Lo dudoso **no** se inventa ni se deja como "duda para QA" suelta: se registra como pregunta con
+**destinatario** y el **impacto**:
+
+```
+[Pregunta → Analista] ¿El monto máximo aplica por operación o acumulado del día?
+   → De la respuesta dependen: NFI-CREAR-09 (negativo) y un posible alterno.
+[Pregunta → Dev] ¿La notificación al aprobador es correo, in-app o ambos?
+   → Define si hay 1 o 2 casos de notificación.
+```
+
+### Autoverificación final (antes de entregar)
+
+El agente corre este self-check y no entrega hasta pasarlo:
+
+- [ ] Cada regla de negocio tiene al menos un caso que la cumple (+) y uno que la viola (−).
+- [ ] Cada mensaje de error está con su **texto literal** (no "sale error").
+- [ ] Ningún caso quedó copiado de otra HU (los datos y rutas son de **esta** funcionalidad).
+- [ ] Nada que sea **solo backend** se espera como observable en pantalla.
+- [ ] Las categorías de cobertura que aplican están cubiertas o anotadas como pregunta/parcial.
+- [ ] Cada caso tiene su etiqueta `Auto-A..D`.
+
+### Modo auditar — revisar casos que YA existen
+
+Cuando ya hay una suite/archivo de casos, además de generar se **audita** lo existente. Por cada
+caso ya escrito, marcá si:
+
+- **Contradice la HU** — el resultado esperado no concuerda con la especificación vigente.
+- **No corresponde** — valida algo que no es de esta HU/funcionalidad.
+- **Duplicado** — otro caso ya cubre lo mismo (mismo flujo y oráculo).
+- **Demasiado grande** — mezcla varios comportamientos; debería partirse.
+
+La salida es el **cuadro de cobertura** (set actual vs recomendado, % antes/después) + la lista de
+casos con problema. Lo orquesta el comando `/auditar-cobertura` (ver `.claude/commands/`).
 
 ---
 
@@ -495,6 +590,10 @@ Un caso se acepta para automatizar solo si cumple **todo**:
 - [ ] El caso es autónomo (no depende de otro caso).
 - [ ] Los datos son realistas.
 - [ ] La funcionalidad llega con: 1 feliz limpio (`Cliente`, `Smoke`) + 1 negativo robusto que agrupa los obligatorios/errores + 1 alterno por cada configuración que cambie el comportamiento + 1 integración por cada criterio que nombre otro módulo.
+- [ ] Se revisaron las **categorías de cobertura** que aplican y se reportó el **cuadro de cobertura** (cubierto / parcial / sin cubrir); lo parcial/sin cubrir quedó como caso nuevo o pregunta con dueño.
+- [ ] Cada caso tiene su etiqueta de **automatizabilidad** `Auto-A..D` en Propósito.
+- [ ] Las dudas se registraron como **preguntas con dueño** (Analista/Dev) e impacto, no como "duda" suelta.
+- [ ] Se corrió la **autoverificación final** (reglas +/−, mensajes literales, nada copiado de otra HU, nada solo-backend esperado en pantalla).
 
 ---
 

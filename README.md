@@ -1,162 +1,124 @@
-# Analista QA Pro Max
+# qa-fullstack
 
-> Agente de IA (Claude Code) que **diseña casos de prueba de valor** a partir de
-> Historias de Usuario y Features de **Azure DevOps**, y los entrega en **Excel
-> (`.xlsx`)** — listos para revisar e importar a tu herramienta de Test Plans.
+> Base de QA **multi-pilar** para Claude Code: los **agentes del equipo** (estratega,
+> diseñador de casos, builder, fixer, reportero, spec-writer, auditor) y la base para
+> crear **pruebas automatizadas de cualquier proyecto** por pilares (E2E, smoke, API,
+> rendimiento con k6, seguridad, accesibilidad). Agnóstico de proyecto.
 
-Pensado para **cualquier analista de QA**, aunque no automatice: con un comando,
-Claude lee las HU/Features, entiende la funcionalidad de punta a punta y genera casos
-consistentes, de alta cobertura y bien redactados, siguiendo una metodología probada.
-
-> **¿Primera vez?** Seguí la guía de cero: [`docs/INSTALACION.md`](docs/INSTALACION.md)
-> (descarga, PAT de Azure, Google API/Service Account y primeros comandos).
+Nace del generador de casos `qa-pro-max` y se amplía a una base de QA completa. El estado de
+cada fase y las decisiones están en [`docs/AUDITORIA.md`](docs/AUDITORIA.md); las reglas de
+trabajo, en [`CLAUDE.md`](CLAUDE.md).
 
 ---
 
-## Qué hace
+## Qué incluye
 
-- Recibe **HU, Features o un lote** de Azure DevOps (por ID).
-- **Expande las Features** a sus historias, **lee solo las vigentes** (estado
-  *Entregado* o *Cerrado*, versión superior) y arma la **visión end-to-end**.
-- Diseña los **4 tipos de caso** (Feliz, Negativo robusto, Alternos, Integración) con
-  la regla *agrupar validaciones / separar comportamientos*.
-- Entrega un **`.xlsx` por módulo** en `Casos de Prueba/<Módulo>.xlsx` (todas las
-  funcionalidades juntas), con 7 columnas: `Casos de prueba ID · Nombre del escenario
-  · Paso a paso · Resultado esperado · HU relacionada · Funcionalidad · Propósito`.
-
-La metodología completa está en [`docs/GUIA-CASOS-DE-PRUEBA-AUTOMATION.md`](docs/GUIA-CASOS-DE-PRUEBA-AUTOMATION.md).
+- **Agentes del equipo** (`.claude/agents/`): estratega de pruebas, diseñador de casos,
+  spec-writer, builder, fixer, reportero, auditor/orquestador, y los `playwright-test-*`.
+  Modelo por rol (barato para volumen, caro para juicio) y orquestación con aislamiento por worktree.
+- **Pilares** (`pilares/`): cada uno con plantilla, guía y un **ejemplo ejecutable que pasa de
+  verdad** contra una app demo pública.
+- **Diseño de casos**: `/generar-casos` produce el `.xlsx` de 7 columnas por módulo, y
+  `/push-cubofish` lo publica a Cubofish (Plan → Suite → Casos).
+- **Metodología** (`docs/guias/`): ciclo de vida de pre-bug, trazabilidad, evidencia de cierre,
+  estándar de Tasks/PR, worktrees de Orca.
 
 ---
 
 ## Requisitos
 
-- [Claude Code](https://claude.com/claude-code) instalado.
-- [Node.js](https://nodejs.org) **18+** (para generar el `.xlsx`).
-- Una cuenta de **Azure DevOps** con acceso a los proyectos cuyas HU vas a leer.
-- Un **Personal Access Token (PAT)** de Azure con permiso **Work Items: Read**
-  (ver más abajo).
+- [Claude Code](https://claude.com/claude-code).
+- [Node.js](https://nodejs.org) **18+**.
+- Para leer HU/crear bugs: cuenta de **Azure DevOps** + un **PAT** (ver abajo).
+- Cada pilar instala sus propias dependencias (Playwright, k6, etc.) de forma autocontenida.
 
 ---
 
-## Instalación (una vez)
+## Instalación
 
 ```bash
-# 1. Cloná el repo y entrá
-git clone <url-del-repo> analista-qa-pro-max
-cd analista-qa-pro-max
-
-# 2. Instalá la dependencia del generador de Excel
-npm install
-
-# 3. Configurá el acceso a Azure DevOps
-cp .env.example .env
-#    editá .env y pegá tu PAT en ADO_MCP_AUTH_TOKEN (ver docs/AZURE-PAT-SETUP.md)
+git clone <url-del-repo> qa-fullstack
+cd qa-fullstack
+npm install                 # exceljs (generador de .xlsx)
+cp .env.example .env         # completá tus credenciales (ver docs/INSTALACION.md)
 ```
+
+Guía de cero (PAT de Azure, Cubofish, primeros comandos): [`docs/INSTALACION.md`](docs/INSTALACION.md).
 
 ### Conectar Azure DevOps (PAT)
 
-Claude se conecta a Azure por el **MCP de Azure DevOps** ya configurado en `.mcp.json`.
-Solo necesita tu **PAT**. Guía detallada (con permisos): [`docs/AZURE-PAT-SETUP.md`](docs/AZURE-PAT-SETUP.md).
+Claude se conecta por el **MCP de Azure DevOps** (ya en `.mcp.json`). Scope **Work Items: Read**
+para diseñar casos; **Read & Write** si vas a crear bugs/pre-bugs (siempre con OK explícito).
+Detalle: [`docs/AZURE-PAT-SETUP.md`](docs/AZURE-PAT-SETUP.md).
 
-Resumen:
-
-1. En `https://dev.azure.com/<ORG>/_usersSettings/tokens` → **New Token** → scope
-   **Work Items: Read** → copiá el token.
-2. Pegalo en `.env` (`ADO_MCP_AUTH_TOKEN=…`) y ajustá `AZURE_DEVOPS_ORG` si tu
-   organización no es `Linktic`.
-3. Exportá las variables y abrí Claude Code:
-
-   ```bash
-   set -a; source .env; set +a
-   claude
-   ```
-
-4. Comprobá la conexión con `/mcp` (debe verse `azure-devops` → **connected**).
+```bash
+set -a; source .env; set +a
+claude
+/mcp                         # azure-devops debe verse "connected"
+```
 
 ---
 
-## Uso
+## Los pilares
 
-Dentro de Claude Code, en la carpeta del proyecto:
+Cada pilar es autocontenido: `cd pilares/<pilar> && npm install && npm test`
+(performance usa `k6 run`). Todos verificados corriendo de verdad.
 
-```
-/generar-casos <ID> [<ID> …]
-```
+| Pilar | Qué prueba | App demo | Correr |
+|---|---|---|---|
+| **e2e** | Flujos de punta a punta (Playwright). | SauceDemo | `cd pilares/e2e && npm install && npm test` |
+| **smoke** | Que lo esencial responde. | SauceDemo | `cd pilares/smoke && npm install && npm test` |
+| **api** | Contrato y estados de endpoints. | JSONPlaceholder | `cd pilares/api && npm install && npm test` |
+| **accessibility** | Chequeos a11y (axe-core). | SauceDemo | `cd pilares/accessibility && npm install && npm test` |
+| **performance** | Carga/estrés con k6 (5 perfiles). | test.k6.io | `cd pilares/performance && k6 run -e TIPO=smoke escenario.js` |
+| **security** | Secretos, cabeceras, deps (lo ejecutable) + guía. | — | `cd pilares/security && npm test` |
 
-Ejemplos:
-
-```
-/generar-casos 376414                 # una historia de usuario
-/generar-casos 330260 340014          # varias HU (se diseñan en conjunto)
-/generar-casos 100564                 # una Feature → expande a todas sus HU
-```
-
-También podés **pegar un lote** (lista de Features y HU); el agente resuelve cada uno.
-
-El agente te mostrará qué HU va a leer (y cuáles descarta por estado/versión), diseñará
-los casos y generará **un archivo por módulo** (todas las funcionalidades del módulo
-juntas, listo para copiar/pegar en su pestaña del Sheet global):
-
-```
-Casos de Prueba/
-  Clientes.xlsx                 # Crear PN, Crear PJ, Contratista, ... (todo en uno)
-  Tesoreria.xlsx
-```
-
-Si volvés a generar otra funcionalidad del mismo módulo, se **añade** al mismo archivo
-(de-duplicando por ID), no crea archivos sueltos.
-
-Al final entrega un **resumen**: casos por tipo, HU omitidas y dudas para QA.
+Índice y detalle: [`pilares/README.md`](pilares/README.md). Cada pilar explica cómo apuntarlo a
+tu proyecto vía variable de entorno (`E2E_BASE_URL`, `API_BASE_URL`, `PERF_BASE_URL`, …).
 
 ---
 
-## Publicar al Google Sheets central
-
-Cuando los casos están **validados**, súbelos al documento central de la operación
-("Repo de casos de prueba - 384") con:
+## Diseñar y publicar casos
 
 ```
-/push-sheets
+/generar-casos <ID> [<ID> …]     # HU/Features/lote de Azure → .xlsx consolidado por módulo
+/push-cubofish                   # publica el .xlsx a Cubofish (dry-run → aplicar con OK)
 ```
 
-Crea **una pestaña por módulo** (si no existe), y si ya existe **añade sin
-sobrescribir** y de-duplica por `Casos de prueba ID`. Corre dry-run primero (no
-escribe) y, tras revisar, aplica. Necesita la **llave del Service Account** una sola
-vez — ver [`docs/PUSH-SHEETS-SETUP.md`](docs/PUSH-SHEETS-SETUP.md).
+- `/generar-casos`: expande Features a sus HU, lee solo las vigentes (Entregado/Cerrado, versión
+  superior), arma la visión end-to-end y deriva los 4 tipos de caso. Salida:
+  `Casos de Prueba/<Módulo>/<Módulo>-Casos-Consolidado.xlsx` (7 columnas). Metodología:
+  [`docs/GUIA-CASOS-DE-PRUEBA-AUTOMATION.md`](docs/GUIA-CASOS-DE-PRUEBA-AUTOMATION.md).
+- `/push-cubofish`: crea la jerarquía Plan → Suite → Casos en Cubofish. El script de importación
+  vive en tu repo de Cubofish; qa-fullstack solo lo invoca (sin guardar secretos). Setup:
+  [`docs/CUBOFISH-SETUP.md`](docs/CUBOFISH-SETUP.md).
 
 ---
 
-## Estructura del proyecto
+## Estructura
 
 ```
 .claude/
-  skills/casos-de-prueba/SKILL.md    # metodología empaquetada
-  skills/push-sheets/SKILL.md        # push al Sheets central
-  commands/generar-casos.md          # /generar-casos (diseñar)
-  commands/push-sheets.md            # /push-sheets (publicar)
-docs/
-  GUIA-CASOS-DE-PRUEBA-AUTOMATION.md # la guía (fuente de verdad)
-  AZURE-PAT-SETUP.md                 # cómo crear el PAT y conectar el MCP
-  PUSH-SHEETS-SETUP.md               # cómo configurar el push al Sheets central
-scripts/casos-prueba/json-a-xlsx.js  # genera el .xlsx (exceljs)
-scripts/casos-prueba/push-sheets.js  # sube al Sheets central (googleapis + exceljs)
-Casos de Prueba/<Módulo>.xlsx        # salida: 1 archivo por módulo (los .xlsx van ignorados por git)
-.mcp.json                            # MCP de Azure DevOps (token por variable de entorno)
-.env.example                         # plantilla de configuración
-CLAUDE.md                            # instrucciones para Claude Code
+  agents/        # los agentes del equipo + playwright-test-*
+  skills/        # casos-de-prueba, triage, generar-prebug, evidencia, auditar/orquestar, openspec-*, cubofish-import
+  commands/      # generar-casos, push-cubofish
+pilares/         # e2e, smoke, api, performance (k6), security, accessibility
+integraciones/   # azure-devops, cubofish, jira, github-issues
+config/          # proyecto.example.json (config agnóstica por proyecto)
+docs/            # AUDITORIA.md, AZURE-PAT-SETUP, CUBOFISH-SETUP, INSTALACION, guias/
+scripts/         # casos-prueba/ (json-a-xlsx), seguridad/ (barrido de secretos)
 ```
 
 ---
 
 ## Seguridad
 
-- El **PAT nunca se commitea**: `.mcp.json` lo lee de la variable `ADO_MCP_AUTH_TOKEN`
-  y `.env` está en `.gitignore`.
-- El PAT es **de solo lectura** (Work Items: Read); el MCP no escribe en Azure.
-- Si el token se expone, **revocálo** en Azure y generá uno nuevo.
+- **Secretos y PII nunca en git.** El PAT y demás credenciales van por `.env` (ignorado); los
+  datos de prueba son **falsos**. Antes de commitear: `bash scripts/seguridad/escanear-secretos.sh`.
+- El PAT de Azure es de **solo lectura** salvo que actives escritura para crear bugs (opt-in, con OK).
 
 ---
 
 ## Licencia
 
-MIT — ver [`LICENSE`](LICENSE). Libre para que cualquier QA lo use en cualquier proyecto.
+MIT — ver [`LICENSE`](LICENSE).

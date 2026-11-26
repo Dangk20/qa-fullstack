@@ -11,16 +11,30 @@ enchufarlo en el proyecto. El PAT es personal e intransferible: cada QA genera e
 
 ## 1. Qué permisos (scopes) necesita
 
-Esta herramienta **solo lee** work items (features e historias). No escribe nada en
-Azure. Por eso el PAT debe ser **de solo lectura y de mínimo privilegio**:
+Hay **dos modos**, y eliges según lo que vayas a hacer. El PAT debe ser siempre de
+**mínimo privilegio**: no habilites scopes que no uses (Code, Build, Release…).
+
+### Modo lectura (por defecto) — diseñar casos
+
+Para leer features/historias y **generar casos** (`/generar-casos`) basta con lectura:
 
 | Scope | Acceso | ¿Por qué |
 |---|---|---|
-| **Work Items** | **Read** | Leer features, historias, criterios de aceptación, estados y relaciones. **Es el único imprescindible.** |
-| Project and Team | Read | *(Opcional)* listar/validar el proyecto. Útil pero no obligatorio. |
+| **Work Items** | **Read** | Leer features, historias, criterios de aceptación, estados y relaciones. **Imprescindible.** |
+| Project and Team | Read | *(Opcional)* listar/validar el proyecto. |
 
-> No habilites scopes de escritura (Work Items *Read & Write*, Code, Build, Release,
-> Test Management *Write*…). La herramienta no los usa y serían un riesgo innecesario.
+### Modo lectura+escritura (opt-in) — crear bugs/pre-bugs
+
+Si además vas a usar el rol **Reportero** para **crear Pre-Bugs/Bugs** en Azure
+(skill `generar-prebug`), el PAT necesita escritura en work items:
+
+| Scope | Acceso | ¿Por qué |
+|---|---|---|
+| **Work Items** | **Read & Write** | Crear/editar Pre-Bugs y Bugs, y comentar work items. |
+
+> **La escritura es opt-in y siempre con OK explícito.** Aunque el PAT permita escribir, el
+> agente **nunca** crea ni edita un work item sin tu aprobación (ver `CLAUDE.md` §Modo loop y
+> el agente `reportero`). Si solo vas a diseñar casos, quédate en **Read**: es más seguro.
 
 ---
 
@@ -31,11 +45,11 @@ Azure. Por eso el PAT debe ser **de solo lectura y de mínimo privilegio**:
    (o directo: `https://dev.azure.com/<ORG>/_usersSettings/tokens`).
 3. **+ New Token**.
 4. Completá:
-   - **Name:** algo identificable, ej. `analista-qa-pro-max`.
+   - **Name:** algo identificable, ej. `qa-fullstack`.
    - **Organization:** la organización donde están tus proyectos (ej. `Linktic`).
    - **Expiration:** elegí una vigencia (ej. 90 días). Cuando expire, repetí estos pasos.
-   - **Scopes:** marcá **Custom defined** y, en **Work Items**, seleccioná **Read**.
-     (Opcional: **Project and Team → Read**.)
+   - **Scopes:** marcá **Custom defined** y, en **Work Items**, seleccioná **Read**
+     (o **Read & Write** si vas a crear bugs/pre-bugs). (Opcional: **Project and Team → Read**.)
 5. **Create** y **copiá el token inmediatamente** — Azure no lo vuelve a mostrar.
 
 ---

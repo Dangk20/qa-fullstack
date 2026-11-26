@@ -134,14 +134,16 @@ Reglas de las columnas (detalle completo en la guía, sección "Cómo se escribe
    de la UI**; esa traducción alimenta la línea `(Ruta)`.
 4. Derivar los casos (Feliz / Negativo robusto enriquecido / Alternos por
    comportamiento / Integraciones por criterio que nombre otro módulo); omitir los
-   que solo se validan en BD y no duplicar.
-5. Numerar IDs por funcionalidad y generar/añadir al `.xlsx` **del módulo** (vía
-   `json-a-xlsx.js`) en `Casos de Prueba/<Módulo>.xlsx` — todas las funcionalidades
-   del módulo en ese único archivo.
-6. Entregar la ruta del `.xlsx` del módulo + un resumen (cuántos casos por
-   funcionalidad y por tipo, HU omitidas por estado/versión, dudas para QA).
-   **No se hace push** (solo el usuario).
+   que solo se validan en BD y no duplicar. Revisar las **categorías de cobertura** que
+   apliquen y etiquetar cada caso con su **automatizabilidad** `Auto-A..D` en Propósito
+   (ver la guía §"Cobertura, automatizabilidad y auditoría").
+5. Numerar IDs por funcionalidad y generar/añadir al `.xlsx` **consolidado del módulo**
+   (vía `json-a-xlsx.js`) en `Casos de Prueba/<Módulo>/<Módulo>-Casos-Consolidado.xlsx`.
+6. **Autoverificar** (reglas +/−, mensajes literales, nada copiado de otra HU, cada caso con
+   `Auto-A..D`) y entregar: ruta del `.xlsx` + resumen por tipo/funcionalidad + **cuadro de
+   cobertura** (cubierto/parcial/sin cubrir, % actual y proyectado) + **preguntas con dueño**
+   (Analista/Dev) + HU omitidas. **No se hace push** (solo el usuario).
 
 > El comando `/generar-casos <IDs>` ejecuta este procedimiento paso a paso.
-> El `.xlsx` resultante se importa a la herramienta de Test Plans (p. ej. Cubofish)
-> de forma separada — está **fuera del alcance** de este skill.
+> Para **revisar la cobertura de casos ya existentes**, el comando `/auditar-cobertura` + la skill
+> `auditar-cobertura`. El `.xlsx` se publica luego a Cubofish con `/push-cubofish`.

@@ -1,0 +1,14 @@
+{
+  "name": "qa-fullstack-pilar-smoke",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Pilar Smoke de qa-fullstack: verificación rápida de que lo esencial responde (Playwright sobre SauceDemo).",
+  "type": "module",
+  "scripts": {
+    "test": "playwright test",
+    "setup": "playwright install chromium"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.60.0"
+  }
+}

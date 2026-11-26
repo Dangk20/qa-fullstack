@@ -1,0 +1,15 @@
+{
+  "name": "qa-fullstack-pilar-accessibility",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Pilar Accesibilidad de qa-fullstack: chequeos a11y automatizables con axe-core sobre Playwright.",
+  "type": "module",
+  "scripts": {
+    "test": "playwright test",
+    "setup": "playwright install chromium"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.10.2",
+    "@playwright/test": "1.60.0"
+  }
+}

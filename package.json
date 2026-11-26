@@ -1,18 +1,16 @@
 {
-  "name": "analista-qa-pro-max",
+  "name": "qa-fullstack",
   "version": "1.0.0",
-  "description": "Agente de IA (Claude Code) para diseñar casos de prueba de valor desde HU/Features de Azure DevOps y entregarlos en Excel (.xlsx).",
+  "description": "Base de QA multi-pilar para Claude Code: agentes del equipo (estratega, diseñador de casos, builder, fixer, reportero, spec-writer, auditor) y pruebas automatizadas por pilares (E2E, smoke, API, rendimiento con k6, seguridad, accesibilidad), agnóstica de proyecto.",
   "license": "MIT",
   "private": true,
   "engines": {
     "node": ">=18"
   },
   "scripts": {
-    "casos:xlsx": "node scripts/casos-prueba/json-a-xlsx.js",
-    "push:sheets": "node scripts/casos-prueba/push-sheets.js"
+    "casos:xlsx": "node scripts/casos-prueba/json-a-xlsx.js"
   },
   "dependencies": {
-    "exceljs": "^4.4.0",
-    "googleapis": "^171.4.0"
+    "exceljs": "^4.4.0"
   }
 }

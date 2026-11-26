@@ -1,0 +1,36 @@
+{
+  "$schema": "./proyecto.schema.json",
+  "proyecto": {
+    "nombre": "mi-proyecto-demo",
+    "descripcion": "Configuración agnóstica de qa-fullstack. Copiá este archivo a config/proyecto.json y ajustá los valores. No pongas secretos aquí: van en .env."
+  },
+  "apps": {
+    "ui": {
+      "baseUrl": "https://www.saucedemo.com",
+      "descripcion": "App demo pública para E2E/smoke/accesibilidad."
+    },
+    "api": {
+      "baseUrl": "https://reqres.in/api",
+      "descripcion": "API pública para el pilar de API."
+    },
+    "performance": {
+      "baseUrl": "https://quickpizza.grafana.com",
+      "descripcion": "App demo oficial de Grafana para carga con k6."
+    }
+  },
+  "gestorDeHUs": {
+    "tipo": "azure-devops",
+    "organizacion": "${AZURE_DEVOPS_ORG}",
+    "proyecto": "${AZURE_DEVOPS_PROJECT}",
+    "modo": "read",
+    "_comentario": "tipo: azure-devops | jira | github-issues. modo: read (default) | read-write (crear bugs, opt-in). Credenciales en .env, nunca aquí."
+  },
+  "pilares": {
+    "e2e": true,
+    "smoke": true,
+    "api": true,
+    "performance": true,
+    "security": true,
+    "accessibility": true
+  }
+}
