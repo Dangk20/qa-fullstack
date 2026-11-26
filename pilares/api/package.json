@@ -1,0 +1,13 @@
+{
+  "name": "qa-fullstack-pilar-api",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Pilar API de qa-fullstack: pruebas de contrato/estados sobre una API pública (JSONPlaceholder), sin navegador.",
+  "type": "module",
+  "scripts": {
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.60.0"
+  }
+}
