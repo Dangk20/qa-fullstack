@@ -74,6 +74,31 @@ El token más barato es el que no se gasta.
 Patrón orchestrator-worker en estrella: los workers no se hablan entre sí; el auditor es
 el hub. Los subagentes **no mueven tarjetas de Orca**; eso lo hace la sesión principal.
 
+### Ciclos de trabajo (A / B / C)
+
+Cuatro fases fijas con el **auditor** de hub: ① diagnóstico · ② planeación (spec-writer) ·
+③ implementación (builder/fixer) · ④ integración (auditor).
+
+- **Ciclo A — Automatización nueva:** HU/caso → spec-writer (OpenSpec) → builder → auditor → PR.
+- **Ciclo B — Triage de una corrida:** fixer clasifica los rojos (bug de test · bug de
+  plataforma · flaky · esperado); lo grande (POM/helper nuevo, ≥3 módulos) pasa a builder.
+- **Ciclo C — Hallazgo / defecto:** reportero reproduce con evidencia "HU vs Sistema",
+  deduplica y redacta Pre-Bug/Bug (escritura en el gestor de HUs, siempre con OK).
+
+### Modo loop — trabajar hasta la Definición de Terminado
+
+Cada rol trabaja hasta su **Definición de Terminado**, no hasta la primera duda: decidir,
+dejar el supuesto por escrito (`**Supuesto:** …`) y seguir. **Solo** se frena por tres cosas:
+
+1. **Defecto de plataforma/core** (HTTP ≥ 500 o envelope `{success:false}`): no se finge un
+   verde; se reporta con su firma.
+2. **Escritura en el gestor de HUs** (crear/editar bugs, pre-bugs, work items): siempre con
+   **OK explícito** del usuario.
+3. **Acción destructiva/irreversible** (`git push`, `reset --hard`, borrar datos): con OK.
+
+Una HU ambigua **no** es motivo para frenar: se toma la lectura más razonable, se anota el
+supuesto y se continúa. La entrega siempre nombra el siguiente paso y su dueño.
+
 ## Los pilares
 
 Cada pilar vive en `pilares/<pilar>/` con **plantilla + guía + un ejemplo ejecutable
