@@ -18,8 +18,8 @@ Reúne dos cosas:
 2. **La base para crear pruebas automatizadas de cualquier proyecto**, organizada por
    **pilares**: E2E, smoke, API, rendimiento/estrés (k6), seguridad y accesibilidad.
 
-Sirve además de repositorio base del **taller de agentes** sobre una estrategia de
-pruebas por pilares. La audiencia del taller es el equipo de Linktic del proyecto 384.
+Es la base de trabajo del **equipo de QA de Linktic (proyecto 384)**; por eso el material
+puede nombrar el contexto real del cliente (ver "Reglas no negociables").
 
 Lo que **no** es: no trae las pruebas automatizadas reales de ningún cliente, ni
 ejecuta/automatiza una suite de producción. Diseña, construye ejemplos y enseña el método.
