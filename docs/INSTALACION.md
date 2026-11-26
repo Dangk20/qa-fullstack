@@ -1,4 +1,4 @@
-# Guía de instalación y configuración — Analista QA Pro Max
+# Guía de instalación y configuración — qa-fullstack
 
 Guía **de cero** para descargar el proyecto, configurarlo y empezar a generar y
 publicar casos de prueba con Claude Code. Compartila con cualquier QA: cada persona
@@ -29,8 +29,8 @@ Hay **dos capacidades** y cada una necesita su credencial:
 ## 1. Descargar el repositorio
 
 ```bash
-git clone https://github.com/Dangk20/qa-pro-max.git
-cd qa-pro-max
+git clone https://github.com/Dangk20/qa-fullstack.git
+cd qa-fullstack
 npm install
 ```
 
@@ -49,7 +49,7 @@ autentica con un **Personal Access Token (PAT)** tuyo.
 1. Entrá a `https://dev.azure.com/<TU-ORG>/_usersSettings/tokens`
    (para Linktic: `https://dev.azure.com/Linktic/_usersSettings/tokens`).
 2. **+ New Token**.
-3. **Name:** `qa-pro-max`. **Expiration:** la que prefieras (ej. 90 días).
+3. **Name:** `qa-fullstack`. **Expiration:** la que prefieras (ej. 90 días).
 4. **Scopes:** *Custom defined* → en **Work Items** marcá **Read**.
    (Es el único permiso necesario. No habilites scopes de escritura.)
 5. **Create** y **copiá el token** (Azure no lo vuelve a mostrar).
@@ -133,7 +133,7 @@ Sheets** usando un **Service Account (SA)**. No usás tu cuenta de Google: usás
 
 ## 4. Usar el agente
 
-Dentro de `qa-pro-max`, con Claude Code abierto:
+Dentro de `qa-fullstack`, con Claude Code abierto:
 
 ### Generar casos
 
@@ -155,7 +155,7 @@ Dentro de `qa-pro-max`, con Claude Code abierto:
 
 ## 5. Compartir el proyecto con otro QA
 
-1. Pasale el link del repo: `https://github.com/Dangk20/qa-pro-max`.
+1. Pasale el link del repo: `https://github.com/Dangk20/qa-fullstack`.
 2. Que siga **pasos 0 → 1 → 2** (y **3** si va a publicar).
 3. Cada uno usa **su propio PAT**; la **llave del SA** la entrega el admin.
 

@@ -1,8 +1,14 @@
-# Analista QA Pro Max
+# qa-fullstack
 
-> Agente de IA (Claude Code) que **diseña casos de prueba de valor** a partir de
-> Historias de Usuario y Features de **Azure DevOps**, y los entrega en **Excel
-> (`.xlsx`)** — listos para revisar e importar a tu herramienta de Test Plans.
+> Base de QA **multi-pilar** para Claude Code: los **agentes del equipo** (estratega,
+> diseñador de casos, builder, fixer, reportero, spec-writer, auditor) y la base para
+> crear **pruebas automatizadas de cualquier proyecto** por pilares (E2E, smoke, API,
+> rendimiento con k6, seguridad, accesibilidad). Agnóstico de proyecto.
+
+> 🏗️ **En transformación por fases.** Nace del generador de casos `qa-pro-max` y se está
+> ampliando. El plan y el estado de cada fase están en
+> [`docs/AUDITORIA.md`](docs/AUDITORIA.md). La sección de diseño de casos de abajo ya
+> funciona hoy; los pilares y los agentes del equipo se construyen en las fases 2–5.
 
 Pensado para **cualquier analista de QA**, aunque no automatice: con un comando,
 Claude lee las HU/Features, entiende la funcionalidad de punta a punta y genera casos
@@ -42,8 +48,8 @@ La metodología completa está en [`docs/GUIA-CASOS-DE-PRUEBA-AUTOMATION.md`](do
 
 ```bash
 # 1. Cloná el repo y entrá
-git clone <url-del-repo> analista-qa-pro-max
-cd analista-qa-pro-max
+git clone <url-del-repo> qa-fullstack
+cd qa-fullstack
 
 # 2. Instalá la dependencia del generador de Excel
 npm install

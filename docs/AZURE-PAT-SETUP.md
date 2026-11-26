@@ -31,7 +31,7 @@ Azure. Por eso el PAT debe ser **de solo lectura y de mínimo privilegio**:
    (o directo: `https://dev.azure.com/<ORG>/_usersSettings/tokens`).
 3. **+ New Token**.
 4. Completá:
-   - **Name:** algo identificable, ej. `analista-qa-pro-max`.
+   - **Name:** algo identificable, ej. `qa-fullstack`.
    - **Organization:** la organización donde están tus proyectos (ej. `Linktic`).
    - **Expiration:** elegí una vigencia (ej. 90 días). Cuando expire, repetí estos pasos.
    - **Scopes:** marcá **Custom defined** y, en **Work Items**, seleccioná **Read**.

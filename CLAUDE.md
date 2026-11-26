@@ -1,83 +1,151 @@
 # CLAUDE.md
 
-Guía para Claude Code al trabajar en este proyecto.
+Guía para Claude Code al trabajar en **qa-fullstack**.
+
+> **Estado:** repo en transformación por fases (ver `docs/AUDITORIA.md`). Nace de
+> `qa-pro-max` (generador de casos) y se está ampliando a una base de QA multi-pilar
+> con los agentes del equipo. Algunas carpetas de `pilares/` e `integraciones/` se van
+> construyendo fase a fase; este archivo describe el **estado objetivo** y las reglas
+> que ya rigen hoy.
 
 ## Qué es este proyecto
 
-**Analista QA Pro Max** es un agente de IA (Claude Code) que **diseña casos de prueba
-de valor** a partir de Historias de Usuario y Features de **Azure DevOps**, y los
-entrega en **Excel (`.xlsx`)**. Está pensado para que cualquier analista de QA —aunque
-no automatice— genere casos consistentes y de alta cobertura con la guía de Claude.
+**qa-fullstack** es una base de trabajo de QA, **agnóstica de proyecto**, para Claude Code.
+Reúne dos cosas:
 
-No contiene código de pruebas automatizadas ni specs: es **solo conocimiento +
-herramientas** (skills, comandos y un generador de `.xlsx`).
+1. **Los agentes del equipo de QA** (estratega de pruebas, diseñador de casos, builder,
+   fixer, reportero, spec-writer, auditor/orquestador) con su metodología.
+2. **La base para crear pruebas automatizadas de cualquier proyecto**, organizada por
+   **pilares**: E2E, smoke, API, rendimiento/estrés (k6), seguridad y accesibilidad.
 
-## Los dos flujos
+Sirve además de repositorio base del **taller de agentes** sobre una estrategia de
+pruebas por pilares. La audiencia del taller es el equipo de Linktic del proyecto 384.
 
-1. **Generar:** `/generar-casos <ID> [<ID> …]` — recibe IDs de **HU, Features o un
-   lote** de Azure y produce **un `.xlsx` por módulo** en `Casos de Prueba/<Módulo>.xlsx`.
-2. **Publicar:** `/push-sheets` — sube los casos **ya validados** al Google Sheets
-   central de la operación ("Repo de casos de prueba - 384"), una pestaña por módulo
-   (crea si no existe, **añade sin sobrescribir** y de-duplica por ID).
-
-- El **conocimiento** de diseño (qué casos existen, cómo se agrupan, integraciones,
-  Propósito, selección de insumos, formato) vive en
-  `docs/GUIA-CASOS-DE-PRUEBA-AUTOMATION.md` (la guía v7) y en
-  `.claude/skills/casos-de-prueba/SKILL.md`. El push vive en
-  `.claude/skills/push-sheets/SKILL.md` + `docs/PUSH-SHEETS-SETUP.md`.
-- El **procedimiento** lo orquestan los comandos en `.claude/commands/`.
-- Si una **regla de diseño** cambia, se cambia en la **guía**, no en el comando.
+Lo que **no** es: no trae las pruebas automatizadas reales de ningún cliente, ni
+ejecuta/automatiza una suite de producción. Diseña, construye ejemplos y enseña el método.
 
 ## Reglas no negociables
 
-- **Azure DevOps MCP es read-only.** Solo se leen work items; **nunca** escribir en Azure.
-- **Selección de insumos:** Features → expandir a sus HU; leer **solo** HU en
-  `3. Entregado` o `4. Cerrado`; por HU lógica, quedarse con la **versión superior**
-  legible (una `Entregado` superior gana a una `Cerrado` inferior). Lo omitido se anota.
-- **Cobertura de valor:** *agrupar validaciones / separar comportamientos*. El negativo
-  robusto recorre los checkpoints genéricos que apliquen (formato, longitud, tipo,
-  caracteres especiales, nulos, reglas entre campos, seguridad básica).
-- **No se diseñan casos solo-BD** (no hay acceso a base de datos); o se redactan contra
-  la UI si el resultado es observable, o se anotan como "no cubierto: requiere BD".
-- **Datos realistas** siempre (nunca `test`, `aaa`, `123`, `01/01/2026`).
-- **Resultados esperados literales** (mensaje/estado exacto) como oráculo.
-- **Salida: un `.xlsx` por módulo** → `Casos de Prueba/<Módulo>.xlsx` (7 columnas
-  —incluye **Funcionalidad** tras HU relacionada—, layout en bloque). **Todas las
-  funcionalidades del módulo en ese mismo archivo**
-  (no uno por funcionalidad). Generarlo con
-  `node scripts/casos-prueba/json-a-xlsx.js <in.json> "Casos de Prueba/<Módulo>.xlsx"`;
-  si el archivo ya existe, el script **añade** y de-duplica por `Casos de prueba ID`.
-- **No hacer `git push`.** A lo sumo commit si el usuario lo pide; el push lo hace él.
+- **Nada de secretos ni PII en git.** Nunca se comitean contraseñas, PAT, tokens
+  (Azure/Grafana/OTEL/Google), llaves de Service Account, ni **datos personales reales**
+  (cédulas, NITs, correos de personas). Van por `.env` (ignorado) y **datos falsos
+  generados**. Antes de cada commit se hace barrido de secretos (ver "Antes de commitear").
+- **Contexto del cliente, sí; datos sensibles, no.** El material puede **nombrar**
+  Fiduprevisora / Linktic / proyecto 384 como el caso real del equipo (la audiencia es
+  interna). Lo prohibido son **secretos, credenciales y PII**, no los nombres.
+- **Los ejemplos ejecutables corren contra apps demo públicas** (SauceDemo, reqres.in,
+  QuickPizza/test.k6.io), para que "pasen de verdad" en la máquina de cada asistente sin
+  credenciales de nadie. Se documenta cómo apuntarlos a un proyecto real vía `.env`.
+- **Azure DevOps MCP:** leer HU/Features siempre; **crear bugs/pre-bugs** solo con PAT de
+  escritura y **OK explícito del usuario**. Por defecto el PAT es de solo lectura.
+- **No hacer `git push`** ni cambios en GitHub ni crear repos: lo hace el usuario. Commits
+  pequeños en la rama de trabajo, sí.
+- **No tocar las fuentes de inspiración** (`rdt_qa_e2e`, `k6-384`): son solo lectura.
+- **Verificar antes de decir que algo funciona:** instalar dependencias y correr el
+  ejemplo. Lo que no se pudo probar, se dice explícitamente.
 
-## Estructura
+## Economía de recursos (todos los roles)
+
+El token más barato es el que no se gasta.
+
+- La **ejecución cara** (suite completa, crons, `git push`, reportes pesados, cargas k6
+  largas) la **dispara el humano**, no Claude. Para pedirla, se sugiere al usuario correr
+  `! <comando>` en el prompt.
+- Claude corre **solo lo mínimo** que verifica su propia compuerta (el ejemplo afectado,
+  no todo).
+- El **modelo** se elige por rol: barato (Sonnet 5.5) donde hay **volumen** de tokens
+  (workers: builder, fixer, reportero); caro (Opus 5.5) donde hay **juicio irreversible**
+  (spec-writer, auditor/orquestador).
+- Si una regla de diseño cambia, se cambia en la **guía/skill** (fuente de conocimiento),
+  no en el comando (procedimiento).
+
+## El equipo (roles)
+
+| Rol | Hace | Modelo sugerido |
+|---|---|---|
+| **Estratega de pruebas** | Define la estrategia por pilares para un proyecto/HU. | Opus 5.5 |
+| **Diseñador de casos** | HU/Features → casos de prueba de valor (`.xlsx`). | Sonnet 5.5 |
+| **Spec-writer** | HU/Feature → propuesta OpenSpec (compuerta de diseño). | Opus 5.5 |
+| **Builder** | Caso/propuesta → automatización ejecutable que pasa. | Sonnet 5.5 |
+| **Fixer** | Diagnostica rojos/flaky; distingue bug de test vs de plataforma. | Sonnet 5.5 |
+| **Reportero** | Reproduce hallazgos con evidencia "HU vs Sistema"; redacta Pre-Bug/Bug. | Sonnet 5.5 |
+| **Auditor / Orquestador** | Despacha al equipo, corre compuertas, consolida en rama de PR. Nunca toca `main`. | Opus 5.5 |
+
+Patrón orchestrator-worker en estrella: los workers no se hablan entre sí; el auditor es
+el hub. Los subagentes **no mueven tarjetas de Orca**; eso lo hace la sesión principal.
+
+## Los pilares
+
+Cada pilar vive en `pilares/<pilar>/` con **plantilla + guía + un ejemplo ejecutable
+mínimo que pasa de verdad** contra la demo pública:
+
+- **e2e** (Playwright) · **smoke** · **api** · **performance** (k6) · **security** ·
+  **accessibility** (axe-core).
+- El pilar de **seguridad** distingue siempre lo **ejecutable sin herramientas pagas**
+  (axe, headers, escaneo de dependencias/secretos) de lo que es **solo guía**. No promete
+  pentesting real.
+
+## Integraciones
+
+- **Azure DevOps** (`integraciones/azure-devops/`): leer HU/Features, crear bugs/pre-bugs,
+  configurar el PAT (read, y write opt-in). MCP en `.mcp.json`, org por variable.
+- **Google Sheets** (`integraciones/google-sheets/`): push opcional de casos al Sheet
+  central (lo heredado de qa-pro-max).
+- **Jira / GitHub Issues**: puntos de extensión documentados, sin implementar a medias.
+
+## Flujos heredados (diseño de casos)
+
+1. **Generar:** `/generar-casos <ID> [<ID> …]` — HU/Features/lote de Azure → **un `.xlsx`
+   por módulo** en `Casos de Prueba/<Módulo>.xlsx` (7 columnas, incluye Funcionalidad).
+   El conocimiento vive en `docs/GUIA-CASOS-DE-PRUEBA-AUTOMATION.md` + skill
+   `casos-de-prueba`; el procedimiento en `.claude/commands/generar-casos.md`.
+2. **Publicar (opcional):** `/push-sheets` — sube los casos validados al Sheets central
+   (dry-run → append + de-dup por ID).
+
+Reglas de diseño vigentes: expandir Features a sus HU; leer solo HU `3. Entregado` /
+`4. Cerrado` (versión superior); agrupar validaciones / separar comportamientos; datos
+realistas; resultados esperados literales; no diseñar casos solo-BD. Generar el `.xlsx`
+con `node scripts/casos-prueba/json-a-xlsx.js <in.json> "Casos de Prueba/<Módulo>.xlsx"`
+(añade y de-duplica por ID si ya existe).
+
+## Estructura (objetivo)
 
 ```
 .claude/
-  skills/casos-de-prueba/SKILL.md   # metodología empaquetada (fuente de conocimiento)
-  skills/push-sheets/SKILL.md       # push al Sheets central (conocimiento)
-  commands/generar-casos.md         # diseñar casos
-  commands/push-sheets.md           # publicar al Sheets central
-docs/
-  GUIA-CASOS-DE-PRUEBA-AUTOMATION.md # la guía (cerebro, fuente de verdad)
-  AZURE-PAT-SETUP.md                 # cómo crear el PAT y conectar el MCP
-  PUSH-SHEETS-SETUP.md               # cómo configurar el push al Sheets central
-scripts/casos-prueba/json-a-xlsx.js  # genera el .xlsx (usa exceljs)
-scripts/casos-prueba/push-sheets.js  # sube al Sheets central (googleapis + exceljs)
-Casos de Prueba/<Módulo>.xlsx        # salida: 1 archivo por módulo (ignorado por git)
-.mcp.json                            # MCP de Azure DevOps (token por env var)
+  agents/     # estratega, diseñador-casos, builder, fixer, reportero, spec-writer, auditor, playwright-test-*
+  skills/     # casos-de-prueba, triage, generar-prebug, evidencia, auditar-integrar, orquestar-equipo, openspec-*
+  commands/   # generar-casos, push-sheets (opcional), y comandos por pilar
+pilares/      # e2e, smoke, api, performance (k6), security, accessibility
+integraciones/ # azure-devops, google-sheets, jira, github-issues
+config/       # proyecto.example.json (config agnóstica por proyecto)
+docs/         # AUDITORIA.md, guias/ (metodología), taller/ (ejercicios)
+scripts/      # casos-prueba/ (json-a-xlsx, push-sheets opcional), orca/ (tablero), seguridad/ (barrido)
+Casos de Prueba/<Módulo>.xlsx   # salida de /generar-casos (ignorado por git)
 ```
+
+## Antes de commitear (barrido de secretos)
+
+Correr y revisar que esté limpio en lo comiteado:
+
+```bash
+rg -n -i 'password|passwd|secret|token|[A-Za-z0-9_]*pat[A-Za-z0-9_]*\s*[:=]|service-account|BEGIN (RSA|EC|OPENSSH) PRIVATE KEY' -g '!*.lock' .
+rg -n -E '\b[0-9]{8,11}\b' test-data/ fake/ 2>/dev/null   # posibles cédulas/NITs reales
+```
+
+Si aparece un valor real (no un placeholder), **no** se comitea: se mueve a `.env` o se
+reemplaza por dato falso. `.env`, credenciales, evidencias y `Casos de Prueba/*.xlsx` van
+en `.gitignore`.
 
 ## Configuración requerida
 
-- Azure DevOps MCP autenticado con un **PAT** (scope mínimo **Work Items: Read**) en la
-  variable `ADO_MCP_AUTH_TOKEN`; organización en `AZURE_DEVOPS_ORG`. Ver
-  `docs/AZURE-PAT-SETUP.md` y `README.md`.
-- `npm install` una vez (instala `exceljs` para el generador de `.xlsx`).
+- **Node 18+** y `npm install` (instala `exceljs`, y `googleapis` para el push opcional).
+- Azure DevOps MCP autenticado con **PAT** en `ADO_MCP_AUTH_TOKEN`; org en `AZURE_DEVOPS_ORG`.
+  Ver `docs/AZURE-PAT-SETUP.md`.
 
-## Fuera de alcance
+## Tablero de Orca
 
-- **Importar a Cubofish u otra herramienta de Test Plans.** El entregable es el `.xlsx`;
-  la importación se hace aparte (por la app de la herramienta). No incluir aquí scripts
-  que escriban directo a la base de datos de Cubofish (requieren credenciales admin y
-  el repo de Cubofish; no son portables ni seguros para distribuir).
-- Ejecutar/automatizar las pruebas. Este proyecto **diseña** casos, no los corre.
+Si la sesión corre dentro de Orca y no es la copia principal, se mantiene al día **solo la
+tarjeta propia** del worktree: `in-progress` al empezar/retomar, `in-review` al quedar
+commiteado y validado, `completed` cuando el PR ya está en `origin/main`. Detenerse a
+preguntar o dejar pruebas en rojo **no** es `in-review`. Si el comando falla, se menciona
+en una línea y se sigue.
