@@ -90,9 +90,17 @@ Para la funcionalidad, derivar **como mínimo**:
 
 Reglas duras: datos **realistas** (nunca `test`/`123`/`01/01/2026`); cada caso
 **autónomo**; resultados esperados **literales** (mensaje/estado exacto) como oráculo;
-no inventar reglas de negocio — lo dudoso va como **duda para QA**; **omitir** casos
-cuyo único oráculo sea la BD (no hay acceso) o redactarlos contra la UI si es
-observable; **no duplicar** (validaciones de mismo flujo y oráculo se unifican).
+no inventar reglas de negocio — lo dudoso va como **pregunta con dueño** (Analista/Dev,
+ver Fase 5); **omitir** casos cuyo único oráculo sea la BD (no hay acceso) o redactarlos
+contra la UI si es observable; **no duplicar** (validaciones de mismo flujo y oráculo se unifican).
+
+**Cobertura y automatizabilidad (guía §"Cobertura, automatizabilidad y auditoría"):**
+- Revisar las **categorías de cobertura** que apliquen (permisos, cada campo, reglas +/−,
+  control dual, mensajes literales, **una notificación por destinatario**, integraciones/batch
+  con la regla exacta, **auditoría/trazabilidad**, errores técnicos). Lo parcial/sin cubrir → caso
+  nuevo o pregunta con dueño.
+- Etiquetar cada caso con su **automatizabilidad** `Auto-A`/`Auto-B`/`Auto-C`/`Auto-D` dentro de
+  **Propósito** (A: directo UI · B: necesita precondición/datos · C: solo API · D: hoy no, con el porqué).
 
 ## Fase 4 — Generar el Excel `.xlsx` (modelo de 7 columnas, bloque)
 
@@ -135,15 +143,24 @@ Casos de prueba ID | Nombre del escenario | Paso a paso | Resultado esperado | H
   por módulo. Nombre del archivo sin tildes ni `/` (espacios → guiones); el contenido
   sí lleva tildes. Confirmar/ajustar con el usuario si prefiere otra ubicación.
 
-## Fase 5 — Entrega
+## Fase 5 — Autoverificación y entrega
 
-1. Entregar la **ruta del `.xlsx`** generado.
-2. Resumen: cuántos casos por tipo (Feliz/Negativo/Alterno/Integración) por HU; la
-   lista de **HU omitidas** por estado o por versión (con el motivo); y las **dudas
-   para QA** (reglas no claras, mapeos UI inciertos, funcionalidad no confirmada en
-   el ambiente, casos no cubiertos por requerir BD).
-3. **No hacer push** — a lo sumo `git add` + `git commit` si el usuario lo pide; el
-   `git push` siempre lo hace el usuario.
+Antes de entregar, correr la **autoverificación final** (guía §Autoverificación): cada regla con
+un caso + y uno −; mensajes con texto literal; nada copiado de otra HU; nada solo-backend esperado
+en pantalla; cada caso con su `Auto-A..D`; categorías de cobertura cubiertas o anotadas.
+
+Luego entregar:
+
+1. La **ruta del `.xlsx`** generado.
+2. **Resumen:** casos por tipo (Feliz/Negativo/Alterno/Integración) por HU; **HU omitidas** por
+   estado/versión (con motivo).
+3. **Cuadro de cobertura** por funcionalidad: categorías **cubierto / parcial / sin cubrir** y la
+   **cobertura estimada** (ej. "80% · con 2 casos más, 100%"). Honesto: no marcar como cubierto lo
+   que no se diseñó.
+4. **Preguntas abiertas con dueño:** cada duda con su destinatario (**Analista/Dev**) y **qué casos
+   dependen** de la respuesta (en vez de "duda para QA" suelta).
+5. **No hacer push** — a lo sumo `git add` + `git commit` si el usuario lo pide; el `git push`
+   siempre lo hace el usuario.
 
 > El `.xlsx` se publica luego a Cubofish con **`/push-cubofish`** (crea Plan → Suite →
 > Casos; dry-run → aplicar con OK). Este comando solo **diseña** los casos.

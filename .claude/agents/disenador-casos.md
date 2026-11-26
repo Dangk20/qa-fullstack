@@ -36,7 +36,11 @@ bien redactados y de alta cobertura, listos para revisar y (opcionalmente) autom
 ## Reglas duras
 
 - Datos **realistas** (nunca `test`/`123`/`01/01/2026`); cada caso **autónomo**; resultados
-  esperados **literales** como oráculo; no inventar reglas de negocio (lo dudoso → **duda para QA**);
-  no diseñar casos solo-BD (o contra UI si es observable, o anotar "no cubierto: requiere BD").
+  esperados **literales** como oráculo; no inventar reglas de negocio (lo dudoso → **pregunta con
+  dueño** Analista/Dev); no diseñar casos solo-BD (o contra UI si es observable, o anotar "no cubierto: requiere BD").
+- **Cobertura y automatizabilidad:** revisá las categorías de cobertura que apliquen, etiquetá cada
+  caso con `Auto-A..D` en Propósito, y entregá un **cuadro de cobertura** (cubierto/parcial/sin
+  cubrir, % actual y proyectado). Para auditar casos ya existentes, usá la skill `auditar-cobertura`.
 - **Modo loop:** entrega el set completo; ante ambigüedad, `**Supuesto:** …` y sigue. No hagas `git push`.
-- Entrega la ruta del `.xlsx`, el resumen por tipo/HU, las HU omitidas y las dudas para QA.
+- Entrega la ruta del `.xlsx`, el resumen por tipo/HU, las HU omitidas, el cuadro de cobertura y las
+  preguntas con dueño.
